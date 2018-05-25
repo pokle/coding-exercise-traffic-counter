@@ -1,0 +1,3 @@
+
+test:
+	pytest --doctest-modules
