@@ -1,24 +1,43 @@
 
 
-def topN(n):
+def topN(n, state, contender):
     """
-    >>> g = topN(3)
-    >>> g.send(None)
-    >>> g.send(1)
-    >>> g.close()
-    [1]
+    Single value:
+    >>> state = {}
+    >>> g = topN(3, state, 1)
+    >>> state
+    {'leaders': [1]}
+
+    Top 3 in the right order
+    >>> state = {}
+    >>> g = topN(3, state, 1)
+    >>> g = topN(3, state, 2)
+    >>> g = topN(3, state, 3)
+    >>> state
+    {'leaders': [3, 2, 1]}
+
+    Insertion and clamping:
+    >>> state = {}
+    >>> g = topN(3, state, 10)
+    >>> g = topN(3, state, 20)
+    >>> g = topN(3, state, 30)
+    >>> g = topN(3, state, 25)
+    >>> state
+    {'leaders': [30, 25, 20]}
+
     """
-    leaders = []
-    while True:
-        contender = yield
-        try:
-            for index, leader in range(min(len(leaders), n)):
-                if contender > leader:
-                    leaders.insert(index, contender)
-                    leaders.pop()
-        except StopIteration:
-            print("result", leaders)
-            return leaders
+    if 'leaders' not in state:
+        state['leaders'] = [contender]
+        return
+
+    leaders = state['leaders']
+
+    for index, leader in enumerate(leaders):
+        if contender > leader:
+            leaders.insert(index, contender)
+            if len(leaders) > n:
+                leaders.pop()
+            return
 
 
 def accumulate(state, line):
@@ -65,6 +84,8 @@ def accumulate(state, line):
     else:
         state['date-cars'] += cars
 
+    # Top 3 records
+    topN(3, state, cars)
 
 def run(filename):
     """
@@ -81,6 +102,7 @@ def run(filename):
             accumulate(state, line)
         accumulate(state, "0 0")  # Signal end
         print('## Total cars = ', state['total-cars'])
+        print('## Top 3 cars = ', state['leaders'])
 
 
 if __name__ == '__main__':
