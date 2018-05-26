@@ -1,3 +1,4 @@
+from sys import argv
 from collections import deque
 
 
@@ -18,8 +19,10 @@ def min_window(windowSize, state, contender, label):
     >>> min_window(3, state, 40, '1st')
     >>> min_window(3, state, 42, '2nd')
     >>> min_window(3, state, 35, '3rd')
-    >>> state
-    {'window': deque([(40, '1st'), (42, '2nd'), (35, '3rd')]), 'min_window': [117, '1st', '3rd']}
+    >>> from pprint import pprint
+    >>> pprint(state)
+    {'min_window': [117, '1st', '3rd'],
+     'window': deque([(40, '1st'), (42, '2nd'), (35, '3rd')])}
 
     Add one more smaller than the min_window to move the window
     >>> min_window(3, state, 0, '4th')
@@ -28,9 +31,11 @@ def min_window(windowSize, state, contender, label):
 
     Add one larger than the min_window so that the min doesn't change.
     >>> min_window(3, state, 1000, '5th')
-    >>> state
-    {'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')]), 'min_window': [77, '2nd', '4th']}
+    >>> pprint(state)
+    {'min_window': [77, '2nd', '4th'],
+     'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')])}
     """
+    
     if 'window' not in state:
         state['window'] = deque([(contender, label)])
         state['min_window'] = [contender, label, label]
@@ -107,6 +112,7 @@ def accumulate(state, line):
     Single day:
     >>> s = {}
     >>> accumulate(s, "2016-12-01T07:30:00 46")
+    ## Count of cars grouped by date
     >>> accumulate(s, "2016-12-01T08:00:00 42")
     >>> accumulate(s, END_OF_INPUT)
     2016-12-01   88
@@ -116,6 +122,7 @@ def accumulate(state, line):
     Multiple days:
     >>> s = {}
     >>> accumulate(s, "2016-12-01T07:30:00 1")
+    ## Count of cars grouped by date
     >>> accumulate(s, "2016-12-01T08:00:00 1")
     >>> accumulate(s, "2016-12-02T00:00:00 200")
     2016-12-01   2
@@ -125,17 +132,21 @@ def accumulate(state, line):
     2016-12-03   300
     >>> s['total-cars']
     502
-    >>> s['leaders']
-    [(300, '2016-12-03T00:00:00'), (200, '2016-12-02T00:00:00'), (1, '2016-12-01T07:30:00')]
+    >>> from pprint import pprint
+    >>> pprint(s['leaders'])
+    [(300, '2016-12-03T00:00:00'),
+     (200, '2016-12-02T00:00:00'),
+     (1, '2016-12-01T07:30:00')]
     """
 
     # Parse
-    (datetime, cars) = line.split(' ')
+    (datetime, cars) = line.strip().split(' ')
     cars = int(cars)
     date = datetime.split('T')[0]
 
     # Group by day
     if 'last-date' not in state:
+        print('## Count of cars grouped by date')
         state['last-date'] = date
         state['date-cars'] = cars
     elif state['last-date'] != date:
@@ -156,15 +167,26 @@ def accumulate(state, line):
         min_window(3, state, cars, datetime)
 
 
+def final_report(state):
+    print('## Total cars = ', state['total-cars'])
+    print('## Top 3 cars\n' +
+          '\n'.join(map(lambda x: f'{x[1]} {x[0]}',  state['leaders'])))
+    print('## Least window = ', state['min_window'])
+
+
 def run(filename):
     """
     >>> run("data.file")
+    ## Count of cars grouped by date
     2016-12-01   179
     2016-12-05   81
     2016-12-08   134
     2016-12-09   4
     ## Total cars =  398
-    ## Top 3 cars =  [(46, '2016-12-01T07:30:00'), (42, '2016-12-01T08:00:00'), (33, '2016-12-08T18:00:00')]
+    ## Top 3 cars
+    2016-12-01T07:30:00 46
+    2016-12-01T08:00:00 42
+    2016-12-08T18:00:00 33
     ## Least window =  [20, '2016-12-01T15:00:00', '2016-12-01T23:30:00']
     """
     with open(filename) as f:
@@ -172,11 +194,8 @@ def run(filename):
         for line in f:
             accumulate(state, line)
         accumulate(state, END_OF_INPUT)
-
-        print('## Total cars = ', state['total-cars'])
-        print('## Top 3 cars = ', state['leaders'])
-        print('## Least window = ', state['min_window'])
+        final_report(state)
 
 
 if __name__ == '__main__':
-    run("data.file")
+    run(argv[1])
