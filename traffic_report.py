@@ -5,7 +5,7 @@ Traffic report coding test
 
 from sys import argv
 from collections import deque
-from functools import reduce
+from functools import reduce, partial
 from itertools import chain
 
 
@@ -71,48 +71,44 @@ def min_window(window_size, state, contender, label):
         min_window[2] = window[-1][1]
 
 
-def topN(n, state, contender, label):
+def rank(n, state, record):
     """
-    
+    A reducer, that ranks all your records by `n` positions.
 
     Single value:
-    >>> state = {}
-    >>> g = topN(3, state, 1, 'first')
-    >>> state
-    {'leaders': [(1, 'first')]}
+    >>> rank(3, {}, (1, 'first'))
+    {'ranks': [(1, 'first')]}
 
     Top 3 in the right order
-    >>> state = {}
-    >>> g = topN(3, state, 1, '1st')
-    >>> g = topN(3, state, 2, '2nd')
-    >>> g = topN(3, state, 3, '3rd')
-    >>> state
-    {'leaders': [(3, '3rd'), (2, '2nd'), (1, '1st')]}
+    >>> recs = [(1, '1st'), (2, '2nd'), (3, '3rd')]
+    >>> reduce(partial(rank, 3), recs, {})
+    {'ranks': [(3, '3rd'), (2, '2nd'), (1, '1st')]}
 
     Insertion and clamping:
-    >>> state = {}
-    >>> g = topN(3, state, 10, '1st')
-    >>> g = topN(3, state, 20, '2nd')
-    >>> g = topN(3, state, 30, '3rd')
-    >>> g = topN(3, state, 25, '4th')
-    >>> state
-    {'leaders': [(30, '3rd'), (25, '4th'), (20, '2nd')]}
-
+    >>> recs = [(10, '1st'), (20, '2nd'), (30, '3rd'), (25, '4th')]
+    >>> reduce(partial(rank, 3), recs, {})
+    {'ranks': [(30, '3rd'), (25, '4th'), (20, '2nd')]}
     """
-    if 'leaders' not in state:
-        state['leaders'] = [(contender, label)]
-        return
+    if 'ranks' not in state:
+        state['ranks'] = [record]
+        return state
 
-    leaders = state['leaders']
+    leaders = state['ranks']
+    (value, label) = record
 
+    # Search for an insertion point
     for index, leader in enumerate(leaders):
-        if contender > leader[0]:
-            leaders.insert(index, (contender, label))
+        if value > leader[0]:
+            leaders.insert(index, (value, label))
             if len(leaders) > n:
                 leaders.pop()
-            return
+            return state
+    
+    return state
 
 
+# Sentinel value that is used by stream_group_by_date() as a signal
+# that it has reached the end of input.
 END_OF_INPUT = ('GOODBYE', 0)
 
 def stream_group_by_date(state, datetime, cars):
@@ -162,7 +158,7 @@ def accumulate_stats(state, record):
     >>> state['total-cars']
     502
     >>> from pprint import pprint
-    >>> pprint(state['leaders'])
+    >>> pprint(state['ranks'])
     [(300, '2016-12-03T00:00:00'),
      (200, '2016-12-02T00:00:00'),
      (1, '2016-12-01T07:30:00')]
@@ -176,8 +172,8 @@ def accumulate_stats(state, record):
         # Sum
         state['total-cars'] = state.get('total-cars', 0) + cars
 
-        # Top 3 records
-        topN(3, state, cars, datetime)
+        # Top 3 cars
+        rank(3, state, (cars, datetime))
 
         # Least of 3 consequitive records
         min_window(3, state, cars, datetime)
@@ -190,7 +186,7 @@ def print_stats(state):
     print('## Total cars = ', state['total-cars'])
 
     print('## Top 3 half hours\n' +
-          '\n'.join(map(lambda x: '{1} {0}'.format(*x), state['leaders'])))
+          '\n'.join(map(lambda x: '{1} {0}'.format(*x), state['ranks'])))
 
     print('## 1.5 hour period with ​least​ cars = {0} cars [{1} .. {2}]'
           .format(*state['min_window']))
