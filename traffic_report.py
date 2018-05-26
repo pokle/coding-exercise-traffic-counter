@@ -44,6 +44,7 @@ def min_window(window_size, state, contender, label):
      'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')])}
     """
 
+    # First time around
     if 'window' not in state:
         state['window'] = deque([(contender, label)])
         state['min_window'] = [contender, label, label]

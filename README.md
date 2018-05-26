@@ -1,8 +1,8 @@
 # Traffic counter
 
-- Line by line streaming
-    - Tested on a large file, and never takes more than 12mb ram while running
-- Not so happy about the way I had to print text while grouping - but it's pragmatic I suppose.
+- Line by line streaming (tested on a large file)
+    - Constant memory usage ~12mb ram
+    - Can process about 144,000 lines/second on my 2013 macbook pro
 
 ## Running it
 Ensure you have python 3 installed (brew install python3)
