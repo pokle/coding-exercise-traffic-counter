@@ -35,7 +35,7 @@ def min_window(windowSize, state, contender, label):
     {'min_window': [77, '2nd', '4th'],
      'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')])}
     """
-    
+
     if 'window' not in state:
         state['window'] = deque([(contender, label)])
         state['min_window'] = [contender, label, label]
@@ -115,7 +115,7 @@ def accumulate(state, line):
     ## Count of cars grouped by date
     >>> accumulate(s, "2016-12-01T08:00:00 42")
     >>> accumulate(s, END_OF_INPUT)
-    2016-12-01   88
+    2016-12-01 88
     >>> s['total-cars']
     88
 
@@ -125,11 +125,11 @@ def accumulate(state, line):
     ## Count of cars grouped by date
     >>> accumulate(s, "2016-12-01T08:00:00 1")
     >>> accumulate(s, "2016-12-02T00:00:00 200")
-    2016-12-01   2
+    2016-12-01 2
     >>> accumulate(s, "2016-12-03T00:00:00 300")
-    2016-12-02   200
+    2016-12-02 200
     >>> accumulate(s, END_OF_INPUT)
-    2016-12-03   300
+    2016-12-03 300
     >>> s['total-cars']
     502
     >>> from pprint import pprint
@@ -150,7 +150,7 @@ def accumulate(state, line):
         state['last-date'] = date
         state['date-cars'] = cars
     elif state['last-date'] != date:
-        print(state['last-date'], ' ', state['date-cars'])
+        print(state['last-date'], state['date-cars'])
         state['last-date'] = date
         state['date-cars'] = cars
     else:
@@ -169,25 +169,28 @@ def accumulate(state, line):
 
 def final_report(state):
     print('## Total cars = ', state['total-cars'])
-    print('## Top 3 cars\n' +
-          '\n'.join(map(lambda x: f'{x[1]} {x[0]}',  state['leaders'])))
-    print('## Least window = ', state['min_window'])
+
+    print('## Top 3 half hours\n' +
+          '\n'.join(map(lambda x: '{1} {0}'.format(*x),  state['leaders'])))
+
+    print('## 1.5 hour period with ​least​ cars = {0} cars [{1} .. {2}]'
+          .format(*state['min_window']))
 
 
 def run(filename):
     """
     >>> run("data.file")
     ## Count of cars grouped by date
-    2016-12-01   179
-    2016-12-05   81
-    2016-12-08   134
-    2016-12-09   4
+    2016-12-01 179
+    2016-12-05 81
+    2016-12-08 134
+    2016-12-09 4
     ## Total cars =  398
-    ## Top 3 cars
+    ## Top 3 half hours
     2016-12-01T07:30:00 46
     2016-12-01T08:00:00 42
     2016-12-08T18:00:00 33
-    ## Least window =  [20, '2016-12-01T15:00:00', '2016-12-01T23:30:00']
+    ## 1.5 hour period with ​least​ cars = 20 cars [2016-12-01T15:00:00 .. 2016-12-01T23:30:00]
     """
     with open(filename) as f:
         state = {}
