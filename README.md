@@ -1,5 +1,5 @@
 # Traffic counter
-
+[![Build Status](https://travis-ci.org/pokle/coding-exercise-traffic-counter.svg?branch=master)](https://travis-ci.org/pokle/coding-exercise-traffic-counter)
 - Line by line streaming (tested on a large file)
     - Constant memory usage ~12mb ram
     - Can process about 144,000 lines/second on my 2013 macbook pro
