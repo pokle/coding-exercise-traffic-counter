@@ -9,7 +9,7 @@ Verify everything's in order by running the tests:
 
 Then you're good to go:
 
-`
+```
 $ python3 traffic-report.py data.file
 ## Count of cars grouped by date
 2016-12-01   179
@@ -22,4 +22,4 @@ $ python3 traffic-report.py data.file
 2016-12-01T08:00:00 42
 2016-12-08T18:00:00 33
 ## Least window =  [20, '2016-12-01T15:00:00', '2016-12-01T23:30:00']
-`
+```
