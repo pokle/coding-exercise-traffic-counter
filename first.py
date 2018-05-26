@@ -39,15 +39,18 @@ def topN(n, state, contender, label):
                 leaders.pop()
             return
 
+END_OF_INPUT = "GOODBYE 0"
 
 def accumulate(state, line):
     """
-    Accumulates state, line by line
+    Accumulates state, line by line.
 
     Single day:
     >>> s = {}
     >>> accumulate(s, "2016-12-01T07:30:00 46")
     >>> accumulate(s, "2016-12-01T08:00:00 42")
+    >>> accumulate(s, END_OF_INPUT)
+    2016-12-01   88
     >>> s['total-cars']
     88
 
@@ -59,10 +62,12 @@ def accumulate(state, line):
     2016-12-01   2
     >>> accumulate(s, "2016-12-03T00:00:00 300")
     2016-12-02   200
-    >>> accumulate(s, "0 0")  # Finish
+    >>> accumulate(s, END_OF_INPUT)
     2016-12-03   300
     >>> s['total-cars']
     502
+    >>> s['leaders']
+    [(300, '2016-12-03T00:00:00'), (200, '2016-12-02T00:00:00'), (1, '2016-12-01T07:30:00')]
     """
 
     # Parse
@@ -101,7 +106,7 @@ def run(filename):
         state = {}
         for line in f:
             accumulate(state, line)
-        accumulate(state, "0 0")  # Signal end
+        accumulate(state, END_OF_INPUT)
         print('## Total cars = ', state['total-cars'])
         print('## Top 3 cars = ', state['leaders'])
 
