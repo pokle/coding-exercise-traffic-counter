@@ -3,7 +3,7 @@ from collections import deque
 from functools import reduce
 from itertools import chain
 
-def min_window(windowSize, state, contender, label):
+def min_window(window_size, state, contender, label):
     """
     Finds the minimum sliding window.
 
@@ -45,7 +45,7 @@ def min_window(windowSize, state, contender, label):
     min_window = state['min_window']
     window = state['window']
 
-    if len(window) < windowSize:
+    if len(window) < window_size:
         # Keep accumulating until we have enough data
         window.append((contender, label))
         min_window[0] += contender
@@ -137,7 +137,6 @@ def accumulate_stats(state, record):
      (200, '2016-12-02T00:00:00'),
      (1, '2016-12-01T07:30:00')]
     """
-    assert(state != None)
 
     (datetime, cars) = record
     date = datetime.split('T')[0]
