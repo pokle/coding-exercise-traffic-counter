@@ -1,5 +1,26 @@
 
 
+def topN(n):
+    """
+    >>> g = topN(3)
+    >>> g.send(None)
+    >>> g.send(1)
+    >>> g.close()
+    [1]
+    """
+    leaders = []
+    while True:
+        contender = yield
+        try:
+            for index, leader in range(min(len(leaders), n)):
+                if contender > leader:
+                    leaders.insert(index, contender)
+                    leaders.pop()
+        except StopIteration:
+            print("result", leaders)
+            return leaders
+
+
 def accumulate(state, line):
     """
     Accumulates state, line by line
@@ -58,7 +79,7 @@ def run(filename):
         state = {}
         for line in f:
             accumulate(state, line)
-        accumulate(state, "0 0") # Signal end
+        accumulate(state, "0 0")  # Signal end
         print('## Total cars = ', state['total-cars'])
 
 
