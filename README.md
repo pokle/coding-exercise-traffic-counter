@@ -1,11 +1,13 @@
 # Traffic counter
 
+- Line by line streaming
+    - Tested on a large file, and never takes more than 12mb ram while running
+- Not so happy about the way I had to print text while grouping - but it's pragmatic I suppose.
+
 ## Running it
 Ensure you have python 3 installed (brew install python3)
 
-Verify everything's in order by running the tests:
-
-`make test`
+Verify everything's in order by running the tests: `make test`
 
 Then you're good to go:
 

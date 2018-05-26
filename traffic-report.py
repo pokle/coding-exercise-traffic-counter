@@ -1,6 +1,7 @@
 from sys import argv
 from collections import deque
-
+from functools import reduce
+from itertools import chain
 
 def min_window(windowSize, state, contender, label):
     """
@@ -102,46 +103,43 @@ def topN(n, state, contender, label):
             return
 
 
-END_OF_INPUT = "GOODBYE 0"
+END_OF_INPUT = ('GOODBYE', 0)
 
 
-def accumulate(state, line):
+def accumulate_stats(state, record):
     """
-    Accumulates state, line by line.
+    Accumulates statistics for the report, record by record.
 
     Single day:
-    >>> s = {}
-    >>> accumulate(s, "2016-12-01T07:30:00 46")
+    >>> recs = [("2016-12-01T07:30:00", 46), ("2016-12-01T08:00:00", 42), END_OF_INPUT]
+    >>> state = reduce(accumulate_stats, recs, {})
     ## Count of cars grouped by date
-    >>> accumulate(s, "2016-12-01T08:00:00 42")
-    >>> accumulate(s, END_OF_INPUT)
     2016-12-01 88
-    >>> s['total-cars']
+    >>> state['total-cars']
     88
 
     Multiple days:
-    >>> s = {}
-    >>> accumulate(s, "2016-12-01T07:30:00 1")
+    >>> recs = [("2016-12-01T07:30:00", 1), 
+    ...         ("2016-12-01T08:00:00", 1), 
+    ...         ("2016-12-02T00:00:00", 200),
+    ...         ("2016-12-03T00:00:00", 300),
+    ...         END_OF_INPUT]
+    >>> state = reduce(accumulate_stats, recs, {})
     ## Count of cars grouped by date
-    >>> accumulate(s, "2016-12-01T08:00:00 1")
-    >>> accumulate(s, "2016-12-02T00:00:00 200")
     2016-12-01 2
-    >>> accumulate(s, "2016-12-03T00:00:00 300")
     2016-12-02 200
-    >>> accumulate(s, END_OF_INPUT)
     2016-12-03 300
-    >>> s['total-cars']
+    >>> state['total-cars']
     502
     >>> from pprint import pprint
-    >>> pprint(s['leaders'])
+    >>> pprint(state['leaders'])
     [(300, '2016-12-03T00:00:00'),
      (200, '2016-12-02T00:00:00'),
      (1, '2016-12-01T07:30:00')]
     """
+    assert(state != None)
 
-    # Parse
-    (datetime, cars) = line.strip().split(' ')
-    cars = int(cars)
+    (datetime, cars) = record
     date = datetime.split('T')[0]
 
     # Group by day
@@ -156,7 +154,7 @@ def accumulate(state, line):
     else:
         state['date-cars'] += cars
 
-    if line != END_OF_INPUT:
+    if datetime != END_OF_INPUT[0]:
         # Sum
         state['total-cars'] = state.get('total-cars', 0) + cars
 
@@ -165,6 +163,8 @@ def accumulate(state, line):
 
         # Least of 3 consequitive records
         min_window(3, state, cars, datetime)
+    
+    return state
 
 
 def final_report(state):
@@ -177,8 +177,20 @@ def final_report(state):
           .format(*state['min_window']))
 
 
+def streamfile(filename):
+    for line in open(filename):
+        yield line
+
+
+def parse(line):
+    (datetime, cars) = line.strip().split(' ')
+    return (datetime, int(cars))
+
+
 def run(filename):
     """
+    Runs the entire report
+
     >>> run("data.file")
     ## Count of cars grouped by date
     2016-12-01 179
@@ -192,12 +204,11 @@ def run(filename):
     2016-12-08T18:00:00 33
     ## 1.5 hour period with ​least​ cars = 20 cars [2016-12-01T15:00:00 .. 2016-12-01T23:30:00]
     """
-    with open(filename) as f:
-        state = {}
-        for line in f:
-            accumulate(state, line)
-        accumulate(state, END_OF_INPUT)
-        final_report(state)
+    lines = streamfile(filename)
+    records = map(parse, lines)
+    records = chain(records, [END_OF_INPUT]) # Add a special signal for the grouping!
+    state = reduce(accumulate_stats, records, {})    
+    final_report(state)
 
 
 if __name__ == '__main__':
