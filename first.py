@@ -3,6 +3,10 @@ from collections import deque
 
 def min_window(windowSize, state, contender, label):
     """
+    Finds the minimum sliding window.
+
+    Result in state['min_window'] is [ <VALUE>, <START_LABEL>, <END_LABEL> ]
+
     Not enough data, so just pick the smallest range
     >>> state = {}
     >>> min_window(3, state, 5, 'first')
@@ -42,7 +46,7 @@ def min_window(windowSize, state, contender, label):
         min_window[2] = label
         return
 
-    # Slide along, and compare
+    # Slide window
     window.popleft()
     window.append((contender, label))
 
