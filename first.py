@@ -1,40 +1,40 @@
 
 
-def topN(n, state, contender):
+def topN(n, state, contender, label):
     """
     Single value:
     >>> state = {}
-    >>> g = topN(3, state, 1)
+    >>> g = topN(3, state, 1, 'first')
     >>> state
-    {'leaders': [1]}
+    {'leaders': [(1, 'first')]}
 
     Top 3 in the right order
     >>> state = {}
-    >>> g = topN(3, state, 1)
-    >>> g = topN(3, state, 2)
-    >>> g = topN(3, state, 3)
+    >>> g = topN(3, state, 1, '1st')
+    >>> g = topN(3, state, 2, '2nd')
+    >>> g = topN(3, state, 3, '3rd')
     >>> state
-    {'leaders': [3, 2, 1]}
+    {'leaders': [(3, '3rd'), (2, '2nd'), (1, '1st')]}
 
     Insertion and clamping:
     >>> state = {}
-    >>> g = topN(3, state, 10)
-    >>> g = topN(3, state, 20)
-    >>> g = topN(3, state, 30)
-    >>> g = topN(3, state, 25)
+    >>> g = topN(3, state, 10, '1st')
+    >>> g = topN(3, state, 20, '2nd')
+    >>> g = topN(3, state, 30, '3rd')
+    >>> g = topN(3, state, 25, '4th')
     >>> state
-    {'leaders': [30, 25, 20]}
+    {'leaders': [(30, '3rd'), (25, '4th'), (20, '2nd')]}
 
     """
     if 'leaders' not in state:
-        state['leaders'] = [contender]
+        state['leaders'] = [(contender, label)]
         return
 
     leaders = state['leaders']
 
     for index, leader in enumerate(leaders):
-        if contender > leader:
-            leaders.insert(index, contender)
+        if contender > leader[0]:
+            leaders.insert(index, (contender, label))
             if len(leaders) > n:
                 leaders.pop()
             return
@@ -85,7 +85,7 @@ def accumulate(state, line):
         state['date-cars'] += cars
 
     # Top 3 records
-    topN(3, state, cars)
+    topN(3, state, cars, datetime)
 
 def run(filename):
     """
@@ -95,6 +95,7 @@ def run(filename):
     2016-12-08   134
     2016-12-09   4
     ## Total cars =  398
+    ## Top 3 cars =  [(46, '2016-12-01T07:30:00'), (42, '2016-12-01T08:00:00'), (33, '2016-12-08T18:00:00')]
     """
     with open(filename) as f:
         state = {}
