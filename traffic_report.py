@@ -33,8 +33,9 @@ def min_window(window_size, state, contender, label):
 
     Add one more smaller than the min_window to move the window
     >>> min_window(3, state, 0, '4th')
-    >>> state
-    {'window': deque([(42, '2nd'), (35, '3rd'), (0, '4th')]), 'min_window': [77, '2nd', '4th']}
+    >>> pprint(state)
+    {'min_window': [77, '2nd', '4th'],
+     'window': deque([(42, '2nd'), (35, '3rd'), (0, '4th')])}
 
     Add one larger than the min_window so that the min doesn't change.
     >>> min_window(3, state, 1000, '5th')
@@ -71,6 +72,8 @@ def min_window(window_size, state, contender, label):
 
 def topN(n, state, contender, label):
     """
+    
+
     Single value:
     >>> state = {}
     >>> g = topN(3, state, 1, 'first')
