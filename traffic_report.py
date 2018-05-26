@@ -61,11 +61,11 @@ def min_sum_in_window(window_size, state, record):
         min_window[0] = window_sum    # sum(start..end)
         min_window[1] = window[0][1]  # start
         min_window[2] = window[-1][1] # end
-    
+
     return state
 
 
-def rank(n, state, record):
+def rank(max_ranks, state, record):
     """
     A reducer, that ranks all your records by `n` positions.
 
@@ -94,24 +94,24 @@ def rank(n, state, record):
     for index, leader in enumerate(leaders):
         if value > leader[0]:
             leaders.insert(index, (value, label))
-            if len(leaders) > n:
+            if len(leaders) > max_ranks:
                 leaders.pop()
             return state
-    
+
     return state
 
 
-# Sentinel value that is used by stream_group_by_date() as a signal
-# that it has reached the end of input.
+# Sentinel value that is used by stream
 END_OF_INPUT = ('GOODBYE', 0)
 
-def stream_group_by_date(state, datetime, cars):
+def stream_group_by_date(state, record):
     """
     Group by date, and report on the sum of cars per date.
     This prints output straight to stdout to keep memory
-    usage in check. A more sophisticated version might write
+    usage in check. Perhaps more sophisticated version might write
     to a seperate file.
     """
+    (datetime, cars) = record
     date = datetime.split('T')[0]
     if 'last-date' not in state:
         print('## Count of cars grouped by date')
@@ -158,12 +158,11 @@ def accumulate_stats(state, record):
      (1, '2016-12-01T07:30:00')]
     """
 
-    (datetime, cars) = record
-
     # This special reducer needs the END_OF_INPUT...
-    stream_group_by_date(state, datetime, cars)
+    stream_group_by_date(state, record)
 
     # ... these don't
+    (datetime, cars) = record
     if datetime != END_OF_INPUT[0]:
         # Sum
         state['total-cars'] = state.get('total-cars', 0) + cars
