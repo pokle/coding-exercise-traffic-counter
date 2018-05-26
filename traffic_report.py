@@ -9,66 +9,60 @@ from functools import reduce, partial
 from itertools import chain
 
 
-def min_window(window_size, state, contender, label):
+def min_sum_in_window(window_size, state, record):
     """
-    Finds the minimum sliding window.
+    A reducer that finds a sliding window with the minimum sum
 
     Result in state['min_window'] is [ <VALUE>, <START_LABEL>, <END_LABEL> ]
 
     Not enough data, so just pick the smallest range
-    >>> state = {}
-    >>> min_window(3, state, 5, 'first')
-    >>> state
+    >>> min_sum_in_window(3, {}, (5, 'first'))
     {'window': deque([(5, 'first')]), 'min_window': [5, 'first', 'first']}
 
     Fill up window
-    >>> state = {}
-    >>> min_window(3, state, 40, '1st')
-    >>> min_window(3, state, 42, '2nd')
-    >>> min_window(3, state, 35, '3rd')
-    >>> from pprint import pprint
-    >>> pprint(state)
-    {'min_window': [117, '1st', '3rd'],
-     'window': deque([(40, '1st'), (42, '2nd'), (35, '3rd')])}
+    >>> recs = [(40, '1st'), (42, '2nd'), (35, '3rd')]
+    >>> state = reduce(partial(min_sum_in_window, 3), recs, {})
+    >>> state
+    {'window': deque([(40, '1st'), (42, '2nd'), (35, '3rd')]), 'min_window': [117, '1st', '3rd']}
 
     Add one more smaller than the min_window to move the window
-    >>> min_window(3, state, 0, '4th')
-    >>> pprint(state)
-    {'min_window': [77, '2nd', '4th'],
-     'window': deque([(42, '2nd'), (35, '3rd'), (0, '4th')])}
+    >>> state = min_sum_in_window(3, state, (0, '4th'))
+    >>> state
+    {'window': deque([(42, '2nd'), (35, '3rd'), (0, '4th')]), 'min_window': [77, '2nd', '4th']}
 
     Add one larger than the min_window so that the min doesn't change.
-    >>> min_window(3, state, 1000, '5th')
-    >>> pprint(state)
-    {'min_window': [77, '2nd', '4th'],
-     'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')])}
+    >>> min_sum_in_window(3, state, (1000, '5th'))
+    {'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')]), 'min_window': [77, '2nd', '4th']}
     """
+    (value, label) = record
 
     # First time around
     if 'window' not in state:
-        state['window'] = deque([(contender, label)])
-        state['min_window'] = [contender, label, label]
-        return
+        state['window'] = deque([(value, label)])
+        state['min_window'] = [value, label, label]
+        return state
 
     min_window = state['min_window']
     window = state['window']
 
     if len(window) < window_size:
         # Keep accumulating until we have enough data
-        window.append((contender, label))
-        min_window[0] += contender
+        window.append((value, label))
+        min_window[0] += value
         min_window[2] = label
-        return
+        return state
 
     # Slide window
     window.popleft()
-    window.append((contender, label))
+    window.append((value, label))
 
     window_sum = sum(map(lambda t: t[0], window))
     if min_window[0] > window_sum:
-        min_window[0] = window_sum
-        min_window[1] = window[0][1]
-        min_window[2] = window[-1][1]
+        min_window[0] = window_sum    # sum(start..end)
+        min_window[1] = window[0][1]  # start
+        min_window[2] = window[-1][1] # end
+    
+    return state
 
 
 def rank(n, state, record):
@@ -166,8 +160,10 @@ def accumulate_stats(state, record):
 
     (datetime, cars) = record
 
+    # This special reducer needs the END_OF_INPUT...
     stream_group_by_date(state, datetime, cars)
 
+    # ... these don't
     if datetime != END_OF_INPUT[0]:
         # Sum
         state['total-cars'] = state.get('total-cars', 0) + cars
@@ -175,8 +171,8 @@ def accumulate_stats(state, record):
         # Top 3 cars
         rank(3, state, (cars, datetime))
 
-        # Least of 3 consequitive records
-        min_window(3, state, cars, datetime)
+        # Least of 3 consecutive records
+        min_sum_in_window(3, state, (cars, datetime))
 
     return state
 
