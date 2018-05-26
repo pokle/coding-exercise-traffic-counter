@@ -1,3 +1,56 @@
+from collections import deque
+
+
+def min_window(windowSize, state, contender, label):
+    """
+    Not enough data, so just pick the smallest range
+    >>> state = {}
+    >>> min_window(3, state, 5, 'first')
+    >>> state
+    {'window': deque([(5, 'first')]), 'min_window': [5, 'first', 'first']}
+
+    Fill up window
+    >>> state = {}
+    >>> min_window(3, state, 40, '1st')
+    >>> min_window(3, state, 42, '2nd')
+    >>> min_window(3, state, 35, '3rd')
+    >>> state
+    {'window': deque([(40, '1st'), (42, '2nd'), (35, '3rd')]), 'min_window': [117, '1st', '3rd']}
+
+    Add one more smaller than the min_window to move the window
+    >>> min_window(3, state, 0, '4th')
+    >>> state
+    {'window': deque([(42, '2nd'), (35, '3rd'), (0, '4th')]), 'min_window': [77, '2nd', '4th']}
+
+    Add one larger than the min_window so that the min doesn't change.
+    >>> min_window(3, state, 1000, '5th')
+    >>> state
+    {'window': deque([(35, '3rd'), (0, '4th'), (1000, '5th')]), 'min_window': [77, '2nd', '4th']}
+    """
+    if 'window' not in state:
+        state['window'] = deque([(contender, label)])
+        state['min_window'] = [contender, label, label]
+        return
+
+    min_window = state['min_window']
+    window = state['window']
+
+    if len(window) < windowSize:
+        # Keep accumulating until we have enough data
+        window.append((contender, label))
+        min_window[0] += contender
+        min_window[2] = label
+        return
+
+    # Slide along, and compare
+    window.popleft()
+    window.append((contender, label))
+
+    window_sum = sum(map(lambda t: t[0], window))
+    if min_window[0] > window_sum:
+        min_window[0] = window_sum
+        min_window[1] = window[0][1]
+        min_window[2] = window[-1][1]
 
 
 def topN(n, state, contender, label):
@@ -39,7 +92,9 @@ def topN(n, state, contender, label):
                 leaders.pop()
             return
 
+
 END_OF_INPUT = "GOODBYE 0"
+
 
 def accumulate(state, line):
     """
@@ -75,9 +130,6 @@ def accumulate(state, line):
     cars = int(cars)
     date = datetime.split('T')[0]
 
-    # Sum
-    state['total-cars'] = state.get('total-cars', 0) + cars
-
     # Group by day
     if 'last-date' not in state:
         state['last-date'] = date
@@ -89,8 +141,16 @@ def accumulate(state, line):
     else:
         state['date-cars'] += cars
 
-    # Top 3 records
-    topN(3, state, cars, datetime)
+    if line != END_OF_INPUT:
+        # Sum
+        state['total-cars'] = state.get('total-cars', 0) + cars
+
+        # Top 3 records
+        topN(3, state, cars, datetime)
+
+        # Least of 3 consequitive records
+        min_window(3, state, cars, datetime)
+
 
 def run(filename):
     """
@@ -101,14 +161,17 @@ def run(filename):
     2016-12-09   4
     ## Total cars =  398
     ## Top 3 cars =  [(46, '2016-12-01T07:30:00'), (42, '2016-12-01T08:00:00'), (33, '2016-12-08T18:00:00')]
+    ## Least window =  [20, '2016-12-01T15:00:00', '2016-12-01T23:30:00']
     """
     with open(filename) as f:
         state = {}
         for line in f:
             accumulate(state, line)
         accumulate(state, END_OF_INPUT)
+
         print('## Total cars = ', state['total-cars'])
         print('## Top 3 cars = ', state['leaders'])
+        print('## Least window = ', state['min_window'])
 
 
 if __name__ == '__main__':
