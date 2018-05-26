@@ -12,7 +12,7 @@ Verify everything's in order by running the tests: `make test`
 Then you're good to go:
 
 ```
-$ python3 traffic-report.py data.file
+$ python3 traffic_report.py data.file
 ## Count of cars grouped by date
 2016-12-01 179
 2016-12-05 81
