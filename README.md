@@ -2,7 +2,8 @@
 [![Build Status](https://travis-ci.org/pokle/coding-exercise-traffic-counter.svg?branch=master)](https://travis-ci.org/pokle/coding-exercise-traffic-counter)
 - Single pass line by line streaming (tested on a large file)
     - Constant memory usage ~12mb ram
-    - Can process about 144,000 lines/second on my 2013 macbook pro
+    - Can process about 130,000 lines/second on my 2013 macbook pro.
+- Current bottleneck is CPU.
 
 ## Running it
 Ensure you have python 3 installed (brew install python3)
