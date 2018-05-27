@@ -67,7 +67,7 @@ def min_sum_in_window(window_size, state, record):
 
 def rank(max_ranks, state, record):
     """
-    A reducer, that ranks all your records by `n` positions.
+    A reducer, that ranks all your records by `max_ranks` positions.
 
     Single value:
     >>> rank(3, {}, (1, 'first'))
