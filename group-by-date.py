@@ -1,3 +1,4 @@
+from sys import argv
 from collections import namedtuple
 from itertools import groupby
 from functools import reduce, partial
@@ -60,10 +61,10 @@ def rank(max_ranks, accum, lv):
     return accum
 
 
-if __name__ == '__main__':
-    lines = readfile('data.file')
-    LVs = map(parse, lines)
-    dateGroups = groupby(LVs, key=pickDate)
+def run(file):
+    lines = readfile(file)
+    lvs = map(parse, lines)
+    dateGroups = groupby(lvs, key=pickDate)
 
     total_value = 0
     ranks = []
@@ -71,9 +72,13 @@ if __name__ == '__main__':
 
     for v, group in dateGroups:
         group = list(group)
-        print(v, sum(map(pickCars, group)))
-        total_value = reduce(lambda a,v:a+v, group, total_value)
+        groupTot = sum(map(pickCars, group))
+        print(v, groupTot)
+        total_value += groupTot
         ranks = reduce(rank3, group, ranks)
     
     print('total value=', total_value)
     print('top 3 =', ranks)
+
+if __name__ == '__main__':
+    run(argv[1])
