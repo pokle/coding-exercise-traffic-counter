@@ -3,7 +3,8 @@ Traffic report coding test
 - Tushar Pokle
 """
 
-from sys import argv
+import sys
+import io
 from collections import namedtuple, deque
 from itertools import groupby
 from functools import reduce, partial
@@ -15,7 +16,7 @@ from functools import reduce, partial
 LV = namedtuple('LV', ['label', 'value'])
 
 
-def streamfile(filename):
+def streamfile(filename=None):
     """
     Generator that streams a file line by line
     >>> stream = streamfile("data.file")
@@ -24,8 +25,12 @@ def streamfile(filename):
     >>> next(stream)
     '2016-12-01T05:30:00 12\\n'
     """
-    for line in open(filename):
-        yield line
+    if filename:
+        for line in open(filename):
+            yield line
+    else:
+        for line in sys.stdin:
+            yield line
 
 
 def parse(line):
@@ -147,7 +152,7 @@ def min_sum_in_window(window_size, accum, lv):
 MIN_SUM_IN_WINDOW_SIZE_3 = partial(min_sum_in_window, 3)
 
 
-def run(file):
+def run(file=None):
     """
     Generates the report
 
@@ -193,12 +198,12 @@ def run(file):
     print('## Total cars = ', total_cars)
     print('## Top 3 half hours\n' +
           '\n'.join(map(lambda x: '{0} {1}'.format(*x), ranks)))
-    print('## 1.5 hour period with ​least​ cars = {0} cars [{1} .. {2}]'
+    print('## 1.5 hour period with least cars = {0} cars [{1} .. {2}]'
           .format(*min_sum['min_window']))
 
 
 if __name__ == '__main__':
-    if len(argv) == 2:
-        run(argv[1])
+    if len(sys.argv) == 2:
+        run(sys.argv[1])
     else:
-        exit(f'usage: {argv[0]} <DATA-FILE>')
+        run()
