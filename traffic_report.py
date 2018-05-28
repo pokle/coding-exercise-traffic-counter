@@ -167,7 +167,7 @@ def run(file=None):
     2016-12-01T07:30:00 46
     2016-12-01T08:00:00 42
     2016-12-08T18:00:00 33
-    ## 1.5 hour period with ​least​ cars = 20 cars [2016-12-01T15:00:00 .. 2016-12-01T23:30:00]
+    ## 1.5 hour period with least cars = 20 cars [2016-12-01T15:00:00 .. 2016-12-01T23:30:00]
     """
 
     lines = streamfile(file)
