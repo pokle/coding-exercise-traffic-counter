@@ -197,7 +197,7 @@ def run(file=None):
     # Finally, print the report
     print('## Total cars = ', total_cars)
     print('## Top 3 half hours\n' +
-          '\n'.join(map(lambda x: '{0} {1}'.format(*x), ranks)))
+          '\n'.join(map(lambda x: ' '.join(map(str, x)), ranks)))
     print('## 1.5 hour period with least cars = {0} cars [{1} .. {2}]'
           .format(*min_sum['min_window']))
 
